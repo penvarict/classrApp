@@ -18,42 +18,47 @@ import sys
 
 
 #app2.exec_()
+#Initialize Application Constants
+APPLICATION_WINDOW_TITLE = 'classr - College Career Planner'
+DEFAULT_WINDOW_POSITION_LEFT = 0
+DEFAULT_WINDOW_POSITION_RIGHT = 0
+WINDOW_MINIMUM_HEIGHT = 506
+WINDOW_MINIMUM_WIDTH = 900
 
-# Main Window
+
+# Main Window, our App class inherits from QWidget, which is the base class
+# for UI objects.
 class App(QWidget):
     def __init__(self):
         super().__init__()
-        self.title = 'College Career'
-        self.left = 0
-        self.top = 0
-        self.width = 300
-        self.height = 200
+        self.title = APPLICATION_WINDOW_TITLE
+        self.left = DEFAULT_WINDOW_POSITION_LEFT
+        self.top = DEFAULT_WINDOW_POSITION_RIGHT
+        self.width = WINDOW_MINIMUM_WIDTH
+        self.height = WINDOW_MINIMUM_HEIGHT
         self.tables = {}
-
+        self.setMinimumHeight(self.height)
+        self.setMinimumWidth(self.width)
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
-        self.createTable()
-
-        #self.layout = QVBoxLayout()
 
         self.layout = QGridLayout()
-
+        self.layout.addWidget(QPushButton("Add Semester"),1,1)
+        self.createSemesterTables()
         for k in range(8):
             if k % 2 == 0:
                 self.layout.addWidget(self.tables[k], k / 2, 0)
             else:
                 self.layout.addWidget(self.tables[k], (k - 1) / 2, 1)
 
-        #self.layout.addWidget(self.tableWidget2)
+       
         self.setLayout(self.layout)
 
         # Show window
         self.show()
 
-        # Create table
-
-    def createTable(self):
+    def createSemesterTables(self):
 
         for k in range(8):
             self.tables[k] = QTableWidget()
@@ -64,6 +69,7 @@ class App(QWidget):
             # Column count
             self.tables[k].setColumnCount(2)
 
+            #create the columns and rows of qTableWidgetItems
             for i in range(5):
                 for j in range(2):
                     self.tables[k].setItem(i, j, QTableWidgetItem(""))
