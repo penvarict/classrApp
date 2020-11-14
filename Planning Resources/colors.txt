@@ -1,0 +1,5 @@
+Accent Color: #64D99E (teal)
+Button Color: #FFFFFF (white)
+Background Color: #cccccc (grey)
+Text Color: #000000 (Black)
+
