@@ -9,6 +9,7 @@ DEFAULT_WINDOW_POSITION_LEFT = 0
 DEFAULT_WINDOW_POSITION_RIGHT = 0
 WINDOW_MINIMUM_HEIGHT = 506
 WINDOW_MINIMUM_WIDTH = 900
+INITIAL_COLUMNS = 1
 
 #Initialize UI, Clickable Items Constants
 # todo: extract the constants used for button size and pos to here. Scope is global fyi
@@ -38,20 +39,18 @@ class App(QWidget):
         self.show()
 
 
+
     #addSemester will add a semester widget to the app layout. Is intended for .clicked event
     #on the AddSemesterButton QPushButton.
     def addSemester(self):
 
+
         self.semesters[self.semestersAdded] = SemesterItem()
         # Row count
-        self.semesters[self.semestersAdded].setRowCount(5)
+        self.semesters[self.semestersAdded].setRowCount(1)
         # Column count
         self.semesters[self.semestersAdded].setColumnCount(2)
 
-        #create the columns and rows of QTableWidgetItems. This is where the user types in classes and credits.
-        for i in range(5):
-            for j in range(2):
-                self.semesters[self.semestersAdded].setItem(i, j, QTableWidgetItem(""))
 
         #add the semester widget accordingly
         if self.semestersAdded % 2 == 0:
@@ -59,7 +58,6 @@ class App(QWidget):
         else:
             self.layout.addWidget(self.semesters[self.semestersAdded], (self.semestersAdded- 1) / 2, 1)
         self.semestersAdded +=1
-
 
 
 
@@ -74,16 +72,31 @@ class AddCourseButton(QPushButton):
         self.setFixedWidth(100)
         self.setFixedHeight(20)
         self.setText('Add a course')
-
+class DelCourseButton(QPushButton):
+    def __init__(self):
+        super().__init__()
+        self.setText("Delete Last Course")
 
 #each semester should be its own custom QTableWidget
 class SemesterItem(QTableWidget):
     def __init__(self):
         super().__init__()
+        self.numberOfCols = 2
+        self.numberOfRows = INITIAL_COLUMNS
         self.layout = QGridLayout()
-        self.layout.addWidget(AddCourseButton())
+        self.addCourseButton = AddCourseButton()
+        self.delCourseButton = DelCourseButton()
+        self.layout.addWidget((self.delCourseButton))
+        self.layout.addWidget(self.addCourseButton)
+        self.addCourseButton.clicked.connect(self.addCourseEvent)
+        self.delCourseButton.clicked.connect(self.delCourseEvent)
         self.setLayout(self.layout)
 
+    def addCourseEvent(self):
+        self.insertRow(self.numberOfRows)
+
+    def delCourseEvent(self):
+        self.removeRow(self.numberOfRows)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
