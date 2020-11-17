@@ -1,29 +1,17 @@
 from PyQt5.QtWidgets import *
 import sys
 
-#app = QApplication([])
-#label = QLabel('Hello World!')
-#label.show()
-#app.exec_()
-
-#app2 = QApplication(sys.argv)
-
-#tableWidget = QTableWidget(5, 2)
-
-#print("Input a class name.")
-#test = input()
-#tableWidget.setItem(0, 0, QTableWidgetItem(test))
-
-#print("Enter the credit hours of that class.")
-
-
-#app2.exec_()
-#Initialize Application Constants
+# todo: implement persist functionality
+# todo: implement universal color theming such that it is not just white and grey
+#Initialize Application Constants - WINDOW
 APPLICATION_WINDOW_TITLE = 'classr - College Career Planner'
 DEFAULT_WINDOW_POSITION_LEFT = 0
 DEFAULT_WINDOW_POSITION_RIGHT = 0
 WINDOW_MINIMUM_HEIGHT = 506
 WINDOW_MINIMUM_WIDTH = 900
+
+#Initialize UI, Clickable Items Constants
+# todo: extract the constants used for button size and pos to here. Scope is global fyi
 
 
 # Main Window, our App class inherits from QWidget, which is the base class
@@ -31,82 +19,75 @@ WINDOW_MINIMUM_WIDTH = 900
 class App(QWidget):
     def __init__(self):
         super().__init__()
-        self.title = APPLICATION_WINDOW_TITLE
-        self.left = DEFAULT_WINDOW_POSITION_LEFT
-        self.top = DEFAULT_WINDOW_POSITION_RIGHT
-        self.width = WINDOW_MINIMUM_WIDTH
-        self.height = WINDOW_MINIMUM_HEIGHT
-        self.tables = {}
-        self.setMinimumHeight(self.height)
-        self.setMinimumWidth(self.width)
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
-
-
+        #semesters will be a dictionary of semesters, which will soon be custom widgets
+        self.semestersAdded = 0
+        self.semesters = {}
+        #set our window parameters
+        self.setMinimumHeight(WINDOW_MINIMUM_HEIGHT)
+        self.setMinimumWidth(WINDOW_MINIMUM_WIDTH)
+        self.setWindowTitle(APPLICATION_WINDOW_TITLE)
+        self.setGeometry(DEFAULT_WINDOW_POSITION_LEFT,DEFAULT_WINDOW_POSITION_RIGHT,WINDOW_MINIMUM_WIDTH,WINDOW_MINIMUM_HEIGHT)
+        #initialize our layout to grid layout
         self.layout = QGridLayout()
-        self.layout.addWidget(QPushButton("Add Semester"),1,1)
-        self.createSemesterTables()
-        for k in range(8):
-            if k % 2 == 0:
-                self.layout.addWidget(self.tables[k], k / 2, 0)
-            else:
-                self.layout.addWidget(self.tables[k], (k - 1) / 2, 1)
-
-       
+        self.lowerAddSemesterButton = AddSemesterButton()
+        self.layout.addWidget(self.lowerAddSemesterButton, 4, 1)
+        self.lowerAddSemesterButton.clicked.connect(self.addSemester)
         self.setLayout(self.layout)
 
         # Show window
         self.show()
 
-    def createSemesterTables(self):
 
-        for k in range(8):
-            self.tables[k] = QTableWidget()
+    #addSemester will add a semester widget to the app layout. Is intended for .clicked event
+    #on the AddSemesterButton QPushButton.
+    def addSemester(self):
 
-            # Row count
-            self.tables[k].setRowCount(5)
-
-            # Column count
-            self.tables[k].setColumnCount(2)
-
-            #create the columns and rows of qTableWidgetItems
-            for i in range(5):
-                for j in range(2):
-                    self.tables[k].setItem(i, j, QTableWidgetItem(""))
-
-        #self.tableWidget2 = QTableWidget()
-
+        self.semesters[self.semestersAdded] = SemesterItem()
         # Row count
-        #self.tableWidget2.setRowCount(5)
-
+        self.semesters[self.semestersAdded].setRowCount(5)
         # Column count
-        #self.tableWidget2.setColumnCount(2)
+        self.semesters[self.semestersAdded].setColumnCount(2)
 
-        #for i in range(5):
-        #    for j in range(2):
-        #        self.tableWidget2.setItem(i, j, QTableWidgetItem(""))
+        #create the columns and rows of QTableWidgetItems. This is where the user types in classes and credits.
+        for i in range(5):
+            for j in range(2):
+                self.semesters[self.semestersAdded].setItem(i, j, QTableWidgetItem(""))
+
+        #add the semester widget accordingly
+        if self.semestersAdded % 2 == 0:
+            self.layout.addWidget(self.semesters[self.semestersAdded], self.semestersAdded / 2, 0)
+        else:
+            self.layout.addWidget(self.semesters[self.semestersAdded], (self.semestersAdded- 1) / 2, 1)
+        self.semestersAdded +=1
 
 
 
-        #self.tableWidget.setItem(0, 0, QTableWidgetItem(""))
-        #elf.tableWidget.setItem(0, 1, QTableWidgetItem(""))
-        #self.tableWidget.setItem(1, 0, QTableWidgetItem(""))
-        #self.tableWidget.setItem(1, 1, QTableWidgetItem(""))
-        #self.tableWidget.setItem(2, 0, QTableWidgetItem(""))
-        #self.tableWidget.setItem(2, 1, QTableWidgetItem(""))
-        #self.tableWidget.setItem(3, 0, QTableWidgetItem(""))
-        #self.tableWidget.setItem(3, 1, QTableWidgetItem(""))
-        #self.tableWidget.setItem(4, 0, QTableWidgetItem(""))
-        #self.tableWidget.setItem(4, 1, QTableWidgetItem(""))
 
-        # Table will fit the screen horizontally
-        #self.tableWidget.horizontalHeader().setStretchLastSection(True)
-        #self.tableWidget.horizontalHeader().setSectionResizeMode(
-        #    QHeaderView.Stretch)
+class AddSemesterButton(QPushButton):
+    def __init__(self):
+        super().__init__()
+        self.setText('Add A Semester')
+
+class AddCourseButton(QPushButton):
+    def __init__(self):
+        super().__init__()
+        self.setFixedWidth(100)
+        self.setFixedHeight(20)
+        self.setText('Add a course')
+
+
+#each semester should be its own custom QTableWidget
+class SemesterItem(QTableWidget):
+    def __init__(self):
+        super().__init__()
+        self.layout = QGridLayout()
+        self.layout.addWidget(AddCourseButton())
+        self.setLayout(self.layout)
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setStyle("Fusion")
     ex = App()
     sys.exit(app.exec_())
 
