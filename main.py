@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import *
 import sys, logging,math
+# Boilerplate configuration for logging debugger.
 logging.basicConfig(format='%(message)s',level='DEBUG')
 
-#Basic Debug enable/diable functionality. If there is no command line argument, then there is no debugging
+# Basic Debug enable/diable functionality. If there is no command line argument, then there is no debugging
 try:
     DEBUG_FLAG = sys.argv[1]
 except IndexError:
@@ -13,7 +14,7 @@ except IndexError:
 
 # todo: implement persist functionality
 # todo: implement universal color theming such that it is not just white and grey
-#Initialize Application Constants - WINDOW
+# Initialize Application Constants for window (Parent Widget)
 APPLICATION_WINDOW_TITLE = 'classr - College Career Planner'
 DEFAULT_WINDOW_POSITION_LEFT = 0
 DEFAULT_WINDOW_POSITION_RIGHT = 0
@@ -21,27 +22,28 @@ WINDOW_MINIMUM_HEIGHT = 506
 WINDOW_MINIMUM_WIDTH = 900
 INITIAL_COLUMNS = 1
 
-#Initialize UI, Clickable Items Constants
-# todo: extract the constants used for button size and pos to here. Scope is global fyi
+# Initialize UI, Clickable Items Constants.
+PUSH_BUTTON_WIDTH = 150
+PUSH_BUTTON_HEIGHT = 40
 
-
-# Main Window, our App class inherits from QWidget, which is the base class
-# for UI objects.
+# This is our main window, the parent widget. Our App class inherits from QWidget not QWindow since QWidget offers
+# additional flexibility.
 class App(QWidget):
     def __init__(self):
         super().__init__()
-        #semesters will be a dictionary of semesters, which will soon be custom widgets
+        #--semesters will be a dictionary of semesters, which will soon be custom widgets
         self.semestersAdded = 0
         self.semesters = {}
-        #set our window parameters
+        #--set our window parameters
         self.setMinimumHeight(WINDOW_MINIMUM_HEIGHT)
         self.setMinimumWidth(WINDOW_MINIMUM_WIDTH)
         self.setWindowTitle(APPLICATION_WINDOW_TITLE)
         self.setGeometry(DEFAULT_WINDOW_POSITION_LEFT,DEFAULT_WINDOW_POSITION_RIGHT,WINDOW_MINIMUM_WIDTH,WINDOW_MINIMUM_HEIGHT)
 
-        #initialize our layout to grid layout
+        #--initialize our layout to grid layout
         self.layout = QGridLayout()
-        #populate with elements
+
+        #--populate with elements
         self.lowerAddSemesterButton = AddSemesterButton()
         self.layout.addWidget(self.lowerAddSemesterButton, 4, 1)
         self.lowerAddSemesterButton.clicked.connect(self.addSemester)
@@ -50,11 +52,10 @@ class App(QWidget):
         # Show window
         self.show()
 
-
-
-    #addSemester is a clicked event intended for the AddSemesterButton QPushButton.
+    # addSemester is a clicked event intended for the AddSemesterButton QPushButton.
     def addSemester(self):
-
+        #--upon the call of the function, set the newest item in semester dict to SemesterItem().
+        #---SemesterItem() is a custom class that inherits from QWidgets.
         self.semesters[self.semestersAdded] = SemesterItem()
         #add the semester widget accordingly
         if self.semestersAdded % 2 == 0:
@@ -68,6 +69,8 @@ class AddSemesterButton(QPushButton):
     def __init__(self):
         super().__init__()
         self.setText('Add A Semester')
+        self.setFixedWidth(150)
+        self.setFixedHeight(40)
 
 class AddCourseButton(QPushButton):
     def __init__(self):
@@ -76,36 +79,57 @@ class AddCourseButton(QPushButton):
 class DelCourseButton(QPushButton):
     def __init__(self):
         super().__init__()
-        self.setFixedWidth(100)
-        self.setFixedHeight(20)
+        self.setFixedWidth(150)
+        self.setFixedHeight(40)
         self.setText("Delete Last Course")
 
-#each semester should be its own custom QTableWidget
+class SemestertitleBox(QLineEdit):
+    def __init__(self):
+        super().__init__()
+
+# SemesterItem inherits from QWidget. This is the 'container' widget that holds the table, title, and Delete button.
+# Beware that Add Course button belongs to the SemesterItemTable.
 class SemesterItem(QWidget):
     number_of_semesters = 0
     def __init__(self):
         super().__init__()
-        self.number_of_semesters +=1
-        self.layout = QVBoxLayout()
-        self.semesterWidgetWidth = self.frameGeometry().width()
-        self.courseColumnWidth = math.floor(self.semesterWidgetWidth) - 20
+        self.number_of_semesters +=1 #debug variable
 
-        # initialize our buttons and elts
-        self.semesterTable = SemesterItemTable()
-        self.semesterTable.setMinimumWidth(639)
-        self.semesterTable.horizontalHeader().setVisible(False)
-        self.semesterTable.verticalHeader().setVisible(False)
-        self.semesterTable.setColumnWidth(0, self.courseColumnWidth)
-        self.semesterTable.setColumnWidth(1, self.courseColumnWidth/4)
+        #--Initialize UI objects
+        self.layout = QVBoxLayout()
+        self.semesterTitle = SemestertitleBox()
         self.delCourseButton = DelCourseButton()
-        #add buttons to the layout
+        self.semesterTable = SemesterItemTable() #initialize the SemesterItemTable (extends QTableWidget)
+
+        #--Configure UI, set helper variables
+        self.setMinimumWidth(self.frameGeometry().width())
+        self.courseColumnWidth = math.floor(self.frameGeometry().width())
+
+        #--Configure table properties
+        self.semesterTable.horizontalHeader().setVisible(True) # We want a horizontal header on our table
+        self.semesterTable.setColumnWidth(0, self.courseColumnWidth)
+        self.semesterTable.horizontalHeader().setSectionResizeMode(1,QHeaderView.Stretch)
+        self.semesterTable.setHorizontalHeaderLabels(['Course','Hours']) #set the column labels
+        self.semesterTable.verticalHeader().setVisible(False) # We do not want vertical row headers
+        self.semesterTable.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
+
+        #--Add widgets to our layout.
+        #---(Reminder: For each semester item we use a Vertical box layout
         self.layout.addWidget(self.delCourseButton)
-        self.delCourseButton.clicked.connect(self.semesterTable.delCourseEvent)
+        self.layout.addWidget(self.semesterTitle)
         self.layout.addWidget(self.semesterTable)
         self.setLayout(self.layout)
-        logging.debug("Semester widget width: "+ str(self.semesterWidgetWidth))
+
+        #--Define clicked event for delete course button
+        self.delCourseButton.clicked.connect(self.semesterTable.delCourseEvent)
+
+        #--Debugging code. Logging console out for DEBUG level
+        logging.debug(f"Course Column Width = {self.courseColumnWidth}")
+        logging.debug(f"Semester widget width = {self.frameGeometry().width()}")
 
 
+# SemesterItemTable extends QTableWidget. This is the UI elt where the user can input the
+# courses and credit hours.
 class SemesterItemTable(QTableWidget):
     def __init__(self):
         super().__init__()
@@ -113,21 +137,24 @@ class SemesterItemTable(QTableWidget):
         self.setRowCount(1)
         self.setColumnCount(2)
         self.addCourseButton = AddCourseButton()
+        self.addCourseButton.setSizePolicy(QSizePolicy.Maximum,QSizePolicy.Maximum)
         self.setCellWidget(self.rowCount() - 1,0,self.addCourseButton)
         self.addCourseButton.clicked.connect(self.addCourseEvent)
 
-
+    #--define what heppens when the user clicks on Add Course
     def addCourseEvent(self):
         self.insertRow(self.numberOfRows-1)
         self.numberOfRows += 1
         logging.debug("The number of rows: " + str(self.numberOfRows))
 
+    #--define what happends when the user clicks on Delete last Course
     def delCourseEvent(self):
         if self.numberOfRows > 1:
             self.removeRow(self.numberOfRows-2)
             self.numberOfRows -= 1
         logging.debug("The number of rows: " + str(self.numberOfRows))
 
+# Boiler plate runner code.
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
