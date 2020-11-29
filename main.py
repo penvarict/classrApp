@@ -1,6 +1,11 @@
+#from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
+from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication
+from PyQt5.QtGui import QIcon
 import sys, logging,math
 # Boilerplate configuration for logging debugger.
+
 logging.basicConfig(format='%(message)s',level='DEBUG')
 
 # Basic Debug enable/diable functionality. If there is no command line argument, then there is no debugging
@@ -49,7 +54,9 @@ class App(QWidget):
         self.lowerAddSemesterButton.clicked.connect(self.addSemester)
         self.setLayout(self.layout)
 
-        # Show window
+        self.addingSave = Example()
+        self.layout.addWidget(self.addingSave, 1, 1)
+
         self.show()
 
     # addSemester is a clicked event intended for the AddSemesterButton QPushButton.
@@ -64,6 +71,36 @@ class App(QWidget):
             self.layout.addWidget(self.semesters[self.semestersAdded], (self.semestersAdded- 1) / 2, 1)
         self.semestersAdded +=1
 
+
+class Example(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        openFile = QAction("&Open File", self)
+        openFile.setShortcut("Ctrl+O")
+        openFile.setStatusTip('Open File')
+        openFile.triggered.connect(self.file_open)
+
+        saveFile = QAction("&Save File", self)
+        saveFile.setShortcut("Ctrl+S")
+        saveFile.setStatusTip('Save File')
+        saveFile.triggered.connect(self.file_save)
+
+        self.statusBar()
+
+        mainMenu = self.menuBar()
+
+        fileMenu = mainMenu.addMenu('&File')
+        fileMenu.addAction(openFile)
+        fileMenu.addAction(saveFile)
+
+        self.show()
+
+    def file_open(self):
+        name = QFileDialog.getOpenFileName(self, 'Open File')
+
+    def file_save(self):
+        name = QFileDialog.getSaveFileName(self, 'Save File')
 
 class AddSemesterButton(QPushButton):
     def __init__(self):
@@ -160,17 +197,3 @@ if __name__ == '__main__':
     app.setStyle("Fusion")
     ex = App()
     sys.exit(app.exec_())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
