@@ -1,15 +1,13 @@
 #from PyQt5 import QtGui, QtWidgets
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
-from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 import sys, logging,math
 # Boilerplate configuration for logging debugger.
-
 logging.basicConfig(format='%(message)s',level='DEBUG')
 
-# Basic Debug enable/diable functionality. If there is no command line argument, then there is no debugging
+# Basic Debug enable/disable functionality. If there is no command line argument, then there is no debugging
 try:
     DEBUG_FLAG = sys.argv[1]
 except IndexError:
@@ -20,12 +18,13 @@ except IndexError:
 
 # todo: implement persist functionality
 # todo: implement universal color theming such that it is not just white and grey
+
 # Initialize Application Constants for window (Parent Widget)
 APPLICATION_WINDOW_TITLE = 'classr - College Career Planner'
 DEFAULT_WINDOW_POSITION_LEFT = 0
 DEFAULT_WINDOW_POSITION_RIGHT = 0
 WINDOW_MINIMUM_HEIGHT = 675
-WINDOW_MINIMUM_WIDTH = 1200
+WINDOW_MINIMUM_WIDTH = 1900
 INITIAL_COLUMNS = 1
 
 # Initialize UI, Clickable Items Constants.
@@ -55,11 +54,12 @@ class App(QMainWindow):
         self.centralLayout = QGridLayout()
         self.centralWidget.setLayout(self.centralLayout)
 
-
-
-        #--populate centralLayout with elements
+        #--initialize our AddSemesterButton (extends QPushButton)
+        #--and populate centralLayout with elements
         self.lowerAddSemesterButton = AddSemesterButton()
         self.centralLayout.addWidget(self.lowerAddSemesterButton, 4, 1)
+
+        #--define clicked event.
         self.lowerAddSemesterButton.clicked.connect(self.addSemester)
 
         #--configure scrollable
@@ -67,28 +67,32 @@ class App(QMainWindow):
         self.scrollable.setWidget(self.centralWidget)
         self.scrollable.setWidgetResizable(True)
 
+        #-set the central widget to the scrollable area. Note that the scrollable area
+        #-- is central widget.
         self.setCentralWidget(self.scrollable)
 
-
+        #--Define a QAction for opening previous save
         openFile = QAction("&Open File", self)
         openFile.setShortcut("Ctrl+O")
         openFile.setStatusTip('Open File')
-        openFile.triggered.connect(self.file_open)
+        openFile.triggered.connect(self.fileOpen)
 
-        #--Define QAction for save
+        #--Define QAction for saving a current plan
         saveFile = QAction("&Save File", self)
         saveFile.setShortcut("Ctrl+S")
         saveFile.setStatusTip('Save File')
-        saveFile.triggered.connect(self.file_save)
+        saveFile.triggered.connect(self.fileSave)
 
-        #--Define the menubar, add the file menu to it.
+        #--Define the menubar and add the actions to fileMenu.
         mainMenu = self.menuBar()
         mainMenu.setNativeMenuBar(True)
         fileMenu = mainMenu.addMenu('&File')
         fileMenu.addAction(openFile)
         fileMenu.addAction(saveFile)
 
+        #--Show the window
         self.show()
+        # End Init
 
     # addSemester is a clicked event intended for the AddSemesterButton QPushButton.
     def addSemester(self):
@@ -103,42 +107,12 @@ class App(QMainWindow):
         self.semestersAdded +=1
 
     # file_open is an action for opening a previous save file
-    def file_open(self):
+    def fileOpen(self):
         name = QFileDialog.getOpenFileName(self, 'Open File')
     # file_save is an action for saving a given plan.
-    def file_save(self):
+    def fileSave(self):
         name = QFileDialog.getSaveFileName(self, 'Save File')
 
-class WindowMenuBar(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        #--Define QAction for Open
-        openFile = QAction("&Open File", self)
-        openFile.setShortcut("Ctrl+O")
-        openFile.setStatusTip('Open File')
-        openFile.triggered.connect(self.file_open)
-
-        #--Define QAction for save
-        saveFile = QAction("&Save File", self)
-        saveFile.setShortcut("Ctrl+S")
-        saveFile.setStatusTip('Save File')
-        saveFile.triggered.connect(self.file_save)
-
-        #--Define the menubar, add the file menu to it.
-        mainMenu = self.menuBar()
-        mainMenu.setNativeMenuBar(True)
-        fileMenu = mainMenu.addMenu('&File')
-        fileMenu.addAction(openFile)
-        fileMenu.addAction(saveFile)
-
-        self.show()
-
-    # file_open is an action for opening a previous save file
-    def file_open(self):
-        name = QFileDialog.getOpenFileName(self, 'Open File')
-    # file_save is an action for saving a given plan.
-    def file_save(self):
-        name = QFileDialog.getSaveFileName(self, 'Save File')
 
 class AddSemesterButton(QPushButton):
     def __init__(self):
@@ -231,7 +205,7 @@ class SemesterItemTable(QTableWidget):
             self.numberOfRows -= 1
         logging.debug("The number of rows: " + str(self.numberOfRows))
 
-# Boiler plate runner code.
+# Boilerplate runner code.
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
