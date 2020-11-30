@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication
 from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt
 import sys, logging,math
 # Boilerplate configuration for logging debugger.
 
@@ -23,8 +24,8 @@ except IndexError:
 APPLICATION_WINDOW_TITLE = 'classr - College Career Planner'
 DEFAULT_WINDOW_POSITION_LEFT = 0
 DEFAULT_WINDOW_POSITION_RIGHT = 0
-WINDOW_MINIMUM_HEIGHT = 506
-WINDOW_MINIMUM_WIDTH = 900
+WINDOW_MINIMUM_HEIGHT = 675
+WINDOW_MINIMUM_WIDTH = 1200
 INITIAL_COLUMNS = 1
 
 # Initialize UI, Clickable Items Constants.
@@ -33,29 +34,59 @@ PUSH_BUTTON_HEIGHT = 40
 
 # This is our main window, the parent widget. Our App class inherits from QWidget not QWindow since QWidget offers
 # additional flexibility.
-class App(QWidget):
+class App(QMainWindow):
     def __init__(self):
         super().__init__()
         #--semesters will be a dictionary of semesters, which will soon be custom widgets
         self.semestersAdded = 0
         self.semesters = {}
+
+        #--initialize the main widget and scrolling area
+        self.scrollable = QScrollArea()
+        self.centralWidget = QWidget()
+
         #--set our window parameters
         self.setMinimumHeight(WINDOW_MINIMUM_HEIGHT)
         self.setMinimumWidth(WINDOW_MINIMUM_WIDTH)
         self.setWindowTitle(APPLICATION_WINDOW_TITLE)
         self.setGeometry(DEFAULT_WINDOW_POSITION_LEFT,DEFAULT_WINDOW_POSITION_RIGHT,WINDOW_MINIMUM_WIDTH,WINDOW_MINIMUM_HEIGHT)
 
-        #--initialize our layout to grid layout
-        self.layout = QGridLayout()
+        #--initialize our layout to grid layout and set it
+        self.centralLayout = QGridLayout()
+        self.centralWidget.setLayout(self.centralLayout)
 
-        #--populate with elements
+
+
+        #--populate centralLayout with elements
         self.lowerAddSemesterButton = AddSemesterButton()
-        self.layout.addWidget(self.lowerAddSemesterButton, 4, 1)
+        self.centralLayout.addWidget(self.lowerAddSemesterButton, 4, 1)
         self.lowerAddSemesterButton.clicked.connect(self.addSemester)
-        self.setLayout(self.layout)
 
-        self.addingSave = Example()
-        self.layout.addWidget(self.addingSave, 1, 1)
+        #--configure scrollable
+        self.scrollable.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scrollable.setWidget(self.centralWidget)
+        self.scrollable.setWidgetResizable(True)
+
+        self.setCentralWidget(self.scrollable)
+
+
+        openFile = QAction("&Open File", self)
+        openFile.setShortcut("Ctrl+O")
+        openFile.setStatusTip('Open File')
+        openFile.triggered.connect(self.file_open)
+
+        #--Define QAction for save
+        saveFile = QAction("&Save File", self)
+        saveFile.setShortcut("Ctrl+S")
+        saveFile.setStatusTip('Save File')
+        saveFile.triggered.connect(self.file_save)
+
+        #--Define the menubar, add the file menu to it.
+        mainMenu = self.menuBar()
+        mainMenu.setNativeMenuBar(True)
+        fileMenu = mainMenu.addMenu('&File')
+        fileMenu.addAction(openFile)
+        fileMenu.addAction(saveFile)
 
         self.show()
 
@@ -66,39 +97,46 @@ class App(QWidget):
         self.semesters[self.semestersAdded] = SemesterItem()
         #add the semester widget accordingly
         if self.semestersAdded % 2 == 0:
-            self.layout.addWidget(self.semesters[self.semestersAdded], self.semestersAdded / 2, 0)
+            self.centralLayout.addWidget(self.semesters[self.semestersAdded], self.semestersAdded / 2, 0)
         else:
-            self.layout.addWidget(self.semesters[self.semestersAdded], (self.semestersAdded- 1) / 2, 1)
+            self.centralLayout.addWidget(self.semesters[self.semestersAdded], (self.semestersAdded- 1) / 2, 1)
         self.semestersAdded +=1
 
+    # file_open is an action for opening a previous save file
+    def file_open(self):
+        name = QFileDialog.getOpenFileName(self, 'Open File')
+    # file_save is an action for saving a given plan.
+    def file_save(self):
+        name = QFileDialog.getSaveFileName(self, 'Save File')
 
-class Example(QMainWindow):
+class WindowMenuBar(QMainWindow):
     def __init__(self):
         super().__init__()
-
+        #--Define QAction for Open
         openFile = QAction("&Open File", self)
         openFile.setShortcut("Ctrl+O")
         openFile.setStatusTip('Open File')
         openFile.triggered.connect(self.file_open)
 
+        #--Define QAction for save
         saveFile = QAction("&Save File", self)
         saveFile.setShortcut("Ctrl+S")
         saveFile.setStatusTip('Save File')
         saveFile.triggered.connect(self.file_save)
 
-        self.statusBar()
-
+        #--Define the menubar, add the file menu to it.
         mainMenu = self.menuBar()
-
+        mainMenu.setNativeMenuBar(True)
         fileMenu = mainMenu.addMenu('&File')
         fileMenu.addAction(openFile)
         fileMenu.addAction(saveFile)
 
         self.show()
 
+    # file_open is an action for opening a previous save file
     def file_open(self):
         name = QFileDialog.getOpenFileName(self, 'Open File')
-
+    # file_save is an action for saving a given plan.
     def file_save(self):
         name = QFileDialog.getSaveFileName(self, 'Save File')
 
@@ -138,8 +176,9 @@ class SemesterItem(QWidget):
         self.delCourseButton = DelCourseButton()
         self.semesterTable = SemesterItemTable() #initialize the SemesterItemTable (extends QTableWidget)
 
-        #--Configure UI, set helper variables
+        #--Configure UI, and layout set helper variables
         self.setMinimumWidth(self.frameGeometry().width())
+        self.setMinimumHeight(self.frameGeometry().height())
         self.courseColumnWidth = math.floor(self.frameGeometry().width())
 
         #--Configure table properties
@@ -163,6 +202,7 @@ class SemesterItem(QWidget):
         #--Debugging code. Logging console out for DEBUG level
         logging.debug(f"Course Column Width = {self.courseColumnWidth}")
         logging.debug(f"Semester widget width = {self.frameGeometry().width()}")
+        logging.debug(f"Semester widget height = {self.frameGeometry().height()}")
 
 
 # SemesterItemTable extends QTableWidget. This is the UI elt where the user can input the
