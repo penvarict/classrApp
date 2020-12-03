@@ -241,7 +241,11 @@ class SemesterItemTable(QTableWidget):
 
     def setNumberOfRows(self, input):
         print("x")
-        self.setRowCount(input)
+        while(input < self.numberOfRows):
+            self.delCourseEvent()
+        while(input > self.numberOfRows):
+            self.addCourseEvent()
+
 
 # Boilerplate runner code.
 if __name__ == '__main__':
