@@ -130,9 +130,26 @@ class App(QMainWindow):
     def fileSave(self):
         name = QFileDialog.getSaveFileName(self, 'Save File')[0]
         file = open(name, 'w')
-        print(self.semesters[0].semesterTable.numberOfRows)
         file.write(str(self.semesters[0].semesterTable.numberOfRows))
+        totalRows = self.semesters[0].semesterTable.rowCounter()
+        totalColumns = self.semesters[0].semesterTable.columnCounter()
+        i = 0
+
+        file.write("-");
+
+        while(i <= totalRows - 2):
+            j = 0
+            while(j <= totalColumns - 1):
+                file.write(self.semesters[0].semesterTable.readCell(i, j) + ":")
+                j = j + 1
+            i = i + 1
+
+        #self.semesters[0].semesterTable.removeCellWidget(0, 0)
+        #table00 = self.semesters[0].SemesterTable.item(2, 2)
         file.close()
+
+
+
 
         #name = QFileDialog.getSaveFileName(self, 'Save File')[0]
         #file = open(name, 'w')
@@ -246,6 +263,14 @@ class SemesterItemTable(QTableWidget):
         while(input > self.numberOfRows):
             self.addCourseEvent()
 
+    def readCell(self, row, column):
+        return self.item(row, column).text()
+
+    def rowCounter(self):
+        return self.rowCount()
+
+    def columnCounter(self):
+        return self.columnCount()
 
 # Boilerplate runner code.
 if __name__ == '__main__':
