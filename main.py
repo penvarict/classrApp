@@ -2,6 +2,7 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
+import pickle
 from PyQt5.QtCore import Qt
 import sys, logging,math
 # Boilerplate configuration for logging debugger.
@@ -108,11 +109,44 @@ class App(QMainWindow):
 
     # file_open is an action for opening a previous save file
     def fileOpen(self):
-        name = QFileDialog.getOpenFileName(self, 'Open File')
+        #print(self.semesters[0].semesterTable.numberOfRows)
+
+        name = QFileDialog.getOpenFileName(self, 'Open File')[0]
+        file = open(name, 'r')
+        fileRead1 = file.read()
+        self.semesters[0].semesterTable.setNumberOfRows(int(fileRead1))
+        file.close()
+
+        #with open('company_data.pkl', 'rb') as put:
+            #semester = self.semesters[0]
+            #semesterPart2 = semester.semesterTable
+            #semester = pickle.load(put)
+            #print(semester.numberOfRows)
+
+
+
+
     # file_save is an action for saving a given plan.
     def fileSave(self):
-        name = QFileDialog.getSaveFileName(self, 'Save File')
+        name = QFileDialog.getSaveFileName(self, 'Save File')[0]
+        file = open(name, 'w')
+        print(self.semesters[0].semesterTable.numberOfRows)
+        file.write(str(self.semesters[0].semesterTable.numberOfRows))
+        file.close()
 
+        #name = QFileDialog.getSaveFileName(self, 'Save File')[0]
+        #file = open(name, 'w')
+        #file.write('whatever')
+        #file.close()
+
+        #semester = self.semesters[0]
+        #semesterPart2 = semester.semesterTable
+
+        #with open('company_data.pkl', 'wb') as output:
+            #company1 = self.semesters[0]
+            #print("y")
+            #pickle.dump(self.semesters[0].semesterTable.numberOfRows, output, pickle.HIGHEST_PROTOCOL)
+            #print("x")
 
 class AddSemesterButton(QPushButton):
     def __init__(self):
@@ -204,6 +238,10 @@ class SemesterItemTable(QTableWidget):
             self.removeRow(self.numberOfRows-2)
             self.numberOfRows -= 1
         logging.debug("The number of rows: " + str(self.numberOfRows))
+
+    def setNumberOfRows(self, input):
+        print("x")
+        self.setRowCount(input)
 
 # Boilerplate runner code.
 if __name__ == '__main__':
