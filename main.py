@@ -113,8 +113,23 @@ class App(QMainWindow):
 
         name = QFileDialog.getOpenFileName(self, 'Open File')[0]
         file = open(name, 'r')
-        fileRead1 = file.read()
-        self.semesters[0].semesterTable.setNumberOfRows(int(fileRead1))
+        totalRows = int(file.readline())
+        totalColumns = int(file.readline())
+
+        self.semesters[0].semesterTable.setNumberOfRows(totalRows)
+        print("x")
+
+        i = 0
+
+        while (i <= totalRows):
+            j = 0
+            while (j <= totalColumns):
+                inputLine = file.readline()
+                self.semesters[0].semesterTable.writeCell(i, j, inputLine)
+                print("Y")
+                j = j + 1
+            i = i + 1
+
         file.close()
 
         #with open('company_data.pkl', 'rb') as put:
@@ -130,19 +145,24 @@ class App(QMainWindow):
     def fileSave(self):
         name = QFileDialog.getSaveFileName(self, 'Save File')[0]
         file = open(name, 'w')
-        file.write(str(self.semesters[0].semesterTable.numberOfRows))
-        totalRows = self.semesters[0].semesterTable.rowCounter()
-        totalColumns = self.semesters[0].semesterTable.columnCounter()
+        #file.write(str(self.semesters[0].semesterTable.numberOfRows) + "\n")
+        totalRows = self.semesters[0].semesterTable.rowCounter() - 2
+        totalColumns = self.semesters[0].semesterTable.columnCounter() - 1
+
+        file.write(str(totalRows) + "\n")
+        file.write(str(totalColumns) + "\n")
         i = 0
 
-        file.write("-");
+        #file.write("-");
 
-        while(i <= totalRows - 2):
+        while(i <= totalRows):
             j = 0
-            while(j <= totalColumns - 1):
-                file.write(self.semesters[0].semesterTable.readCell(i, j) + ":")
+            while(j <= totalColumns):
+                file.write(str(self.semesters[0].semesterTable.readCell(i, j)) + "\n")
                 j = j + 1
             i = i + 1
+
+        file.write("-EndOfFileKey- \n")
 
         #self.semesters[0].semesterTable.removeCellWidget(0, 0)
         #table00 = self.semesters[0].SemesterTable.item(2, 2)
@@ -257,14 +277,19 @@ class SemesterItemTable(QTableWidget):
         logging.debug("The number of rows: " + str(self.numberOfRows))
 
     def setNumberOfRows(self, input):
-        print("x")
-        while(input < self.numberOfRows):
+        print("z")
+        while(input < self.numberOfRows - 2):
             self.delCourseEvent()
-        while(input > self.numberOfRows):
+        while(input > self.numberOfRows - 2):
             self.addCourseEvent()
 
     def readCell(self, row, column):
         return self.item(row, column).text()
+
+    def writeCell(self, row, column, textToEnter):
+        print("a")
+        #self.item(row, column).setText(textToEnter)
+        self.setItem(row, column, QTableWidgetItem(textToEnter))
 
     def rowCounter(self):
         return self.rowCount()
