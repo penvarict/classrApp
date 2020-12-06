@@ -2,6 +2,7 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
+import pickle
 from PyQt5.QtCore import Qt
 import sys, logging,math
 # Boilerplate configuration for logging debugger.
@@ -108,11 +109,81 @@ class App(QMainWindow):
 
     # file_open is an action for opening a previous save file
     def fileOpen(self):
-        name = QFileDialog.getOpenFileName(self, 'Open File')
+        #print(self.semesters[0].semesterTable.numberOfRows)
+
+        name = QFileDialog.getOpenFileName(self, 'Open File')[0]
+        file = open(name, 'r')
+        totalRows = int(file.readline())
+        totalColumns = int(file.readline())
+
+        self.semesters[0].semesterTable.setNumberOfRows(totalRows)
+        print("x")
+
+        i = 0
+
+        while (i <= totalRows):
+            j = 0
+            while (j <= totalColumns):
+                inputLine = file.readline()
+                self.semesters[0].semesterTable.writeCell(i, j, inputLine)
+                print("Y")
+                j = j + 1
+            i = i + 1
+
+        file.close()
+
+        #with open('company_data.pkl', 'rb') as put:
+            #semester = self.semesters[0]
+            #semesterPart2 = semester.semesterTable
+            #semester = pickle.load(put)
+            #print(semester.numberOfRows)
+
+
+
+
     # file_save is an action for saving a given plan.
     def fileSave(self):
-        name = QFileDialog.getSaveFileName(self, 'Save File')
+        name = QFileDialog.getSaveFileName(self, 'Save File')[0]
+        file = open(name, 'w')
+        #file.write(str(self.semesters[0].semesterTable.numberOfRows) + "\n")
+        totalRows = self.semesters[0].semesterTable.rowCounter() - 2
+        totalColumns = self.semesters[0].semesterTable.columnCounter() - 1
 
+        file.write(str(totalRows) + "\n")
+        file.write(str(totalColumns) + "\n")
+        i = 0
+
+        #file.write("-");
+
+        while(i <= totalRows):
+            j = 0
+            while(j <= totalColumns):
+                file.write(str(self.semesters[0].semesterTable.readCell(i, j)) + "\n")
+                j = j + 1
+            i = i + 1
+
+        file.write("-EndOfFileKey- \n")
+
+        #self.semesters[0].semesterTable.removeCellWidget(0, 0)
+        #table00 = self.semesters[0].SemesterTable.item(2, 2)
+        file.close()
+
+
+
+
+        #name = QFileDialog.getSaveFileName(self, 'Save File')[0]
+        #file = open(name, 'w')
+        #file.write('whatever')
+        #file.close()
+
+        #semester = self.semesters[0]
+        #semesterPart2 = semester.semesterTable
+
+        #with open('company_data.pkl', 'wb') as output:
+            #company1 = self.semesters[0]
+            #print("y")
+            #pickle.dump(self.semesters[0].semesterTable.numberOfRows, output, pickle.HIGHEST_PROTOCOL)
+            #print("x")
 
 class AddSemesterButton(QPushButton):
     def __init__(self):
@@ -204,6 +275,27 @@ class SemesterItemTable(QTableWidget):
             self.removeRow(self.numberOfRows-2)
             self.numberOfRows -= 1
         logging.debug("The number of rows: " + str(self.numberOfRows))
+
+    def setNumberOfRows(self, input):
+        print("z")
+        while(input < self.numberOfRows - 2):
+            self.delCourseEvent()
+        while(input > self.numberOfRows - 2):
+            self.addCourseEvent()
+
+    def readCell(self, row, column):
+        return self.item(row, column).text()
+
+    def writeCell(self, row, column, textToEnter):
+        print("a")
+        #self.item(row, column).setText(textToEnter)
+        self.setItem(row, column, QTableWidgetItem(textToEnter))
+
+    def rowCounter(self):
+        return self.rowCount()
+
+    def columnCounter(self):
+        return self.columnCount()
 
 # Boilerplate runner code.
 if __name__ == '__main__':
