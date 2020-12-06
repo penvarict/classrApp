@@ -136,31 +136,31 @@ class App(QMainWindow):
     def fileSave(self):
         name = QFileDialog.getSaveFileName(self, 'Save File')[0]
         file = open(name, 'w')
-        #file.write(str(self.semesters[0].semesterTable.numberOfRows) + "\n")
+        #-line 1 is the number of semester in the plan
         file.write(str(self.semestersAdded) + "\n")
         #-loop through all the semesters and add their information to the file
         for semester in self.semesters.values():
             totalRows = semester.semesterTable.rowCounter() - 2
-            print(totalRows)
             totalColumns = semester.semesterTable.columnCounter() - 1
+
             semesterTitle =semester.getSemesterTitle() #type str
-            #in the save file: the first line is the semester's title
+            logging.debug(f"Total rows from local def fileSave in App(). Semester: {semesterTitle} has {totalRows}")
+            logging.debug(f"Total columns in each sem from local def fileSave in App(). Semester: {semesterTitle} has {totalRows}")
+
+            #in the save file: the 1st line after the # of semesters
             file.write(semesterTitle+"\n")
-            #-in the save file the 2nd line is the semester's number
-            file.write(str(self.semestersAdded)+"\n")
             #-in the save file the #st line is the number of rows (courses)
             file.write(str(totalRows) + "\n")
-            #-in the save file the # line is the number of columns
+            #-in the save file is the number of columns
             file.write(str(totalColumns) + "\n")
 
-
-            i = 0
-            while(i <= totalRows):
-                j = 0
-                while(j <= totalColumns):
-                    file.write(str(semester.semesterTable.readCell(i, j)) + "\n")
-                    j = j + 1
-                i = i + 1
+            row = 0
+            while(row <= totalRows):
+                col = 0
+                while(col <= totalColumns):
+                    file.write(str(semester.semesterTable.readCell(row, col)) + "\n")
+                    col = col + 1
+                row = row + 1
 
         file.write("-EndOfFileKey- \n")
 
