@@ -95,7 +95,7 @@ class App(QMainWindow):
         self.show()
         # End Init
 
-    # addSemester is a clicked event intended for the AddSemesterButton QPushButton.
+    #-addSemester is a clicked event intended for the AddSemesterButton QPushButton.
     def addSemester(self):
         #--upon the call of the function, set the newest item in semester dict to SemesterItem().
         #---SemesterItem() is a custom class that inherits from QWidgets.
@@ -107,7 +107,7 @@ class App(QMainWindow):
             self.centralLayout.addWidget(self.semesters[self.semestersAdded], (self.semestersAdded- 1) / 2, 1)
         self.semestersAdded +=1
 
-    # file_open is an action for opening a previous save file
+    #-file_open is an action for opening a previous save file
     def fileOpen(self):
         #print(self.semesters[0].semesterTable.numberOfRows)
 
@@ -132,58 +132,40 @@ class App(QMainWindow):
 
         file.close()
 
-        #with open('company_data.pkl', 'rb') as put:
-            #semester = self.semesters[0]
-            #semesterPart2 = semester.semesterTable
-            #semester = pickle.load(put)
-            #print(semester.numberOfRows)
-
-
-
-
-    # file_save is an action for saving a given plan.
+    #-file_save is an action for saving a given plan.
     def fileSave(self):
         name = QFileDialog.getSaveFileName(self, 'Save File')[0]
         file = open(name, 'w')
         #file.write(str(self.semesters[0].semesterTable.numberOfRows) + "\n")
-        totalRows = self.semesters[0].semesterTable.rowCounter() - 2
-        totalColumns = self.semesters[0].semesterTable.columnCounter() - 1
+        file.write(str(self.semestersAdded) + "\n")
+        #-loop through all the semesters and add their information to the file
+        for semester in self.semesters.values():
+            totalRows = semester.semesterTable.rowCounter() - 2
+            print(totalRows)
+            totalColumns = semester.semesterTable.columnCounter() - 1
+            semesterTitle =semester.getSemesterTitle() #type str
+            #in the save file: the first line is the semester's title
+            file.write(semesterTitle+"\n")
+            #-in the save file the 2nd line is the semester's number
+            file.write(str(self.semestersAdded)+"\n")
+            #-in the save file the #st line is the number of rows (courses)
+            file.write(str(totalRows) + "\n")
+            #-in the save file the # line is the number of columns
+            file.write(str(totalColumns) + "\n")
 
-        file.write(str(totalRows) + "\n")
-        file.write(str(totalColumns) + "\n")
-        i = 0
 
-        #file.write("-");
-
-        while(i <= totalRows):
-            j = 0
-            while(j <= totalColumns):
-                file.write(str(self.semesters[0].semesterTable.readCell(i, j)) + "\n")
-                j = j + 1
-            i = i + 1
+            i = 0
+            while(i <= totalRows):
+                j = 0
+                while(j <= totalColumns):
+                    file.write(str(semester.semesterTable.readCell(i, j)) + "\n")
+                    j = j + 1
+                i = i + 1
 
         file.write("-EndOfFileKey- \n")
 
-        #self.semesters[0].semesterTable.removeCellWidget(0, 0)
-        #table00 = self.semesters[0].SemesterTable.item(2, 2)
         file.close()
 
-
-
-
-        #name = QFileDialog.getSaveFileName(self, 'Save File')[0]
-        #file = open(name, 'w')
-        #file.write('whatever')
-        #file.close()
-
-        #semester = self.semesters[0]
-        #semesterPart2 = semester.semesterTable
-
-        #with open('company_data.pkl', 'wb') as output:
-            #company1 = self.semesters[0]
-            #print("y")
-            #pickle.dump(self.semesters[0].semesterTable.numberOfRows, output, pickle.HIGHEST_PROTOCOL)
-            #print("x")
 
 class AddSemesterButton(QPushButton):
     def __init__(self):
@@ -248,6 +230,9 @@ class SemesterItem(QWidget):
         logging.debug(f"Course Column Width = {self.courseColumnWidth}")
         logging.debug(f"Semester widget width = {self.frameGeometry().width()}")
         logging.debug(f"Semester widget height = {self.frameGeometry().height()}")
+
+    def getSemesterTitle(self):
+        return self.semesterTitle.text()
 
 
 # SemesterItemTable extends QTableWidget. This is the UI elt where the user can input the
