@@ -1,9 +1,13 @@
+#from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt
 import sys, logging,math
 # Boilerplate configuration for logging debugger.
 logging.basicConfig(format='%(message)s',level='DEBUG')
 
-# Basic Debug enable/diable functionality. If there is no command line argument, then there is no debugging
+# Basic Debug enable/disable functionality. If there is no command line argument, then there is no debugging
 try:
     DEBUG_FLAG = sys.argv[1]
 except IndexError:
@@ -14,12 +18,13 @@ except IndexError:
 
 # todo: implement persist functionality
 # todo: implement universal color theming such that it is not just white and grey
+
 # Initialize Application Constants for window (Parent Widget)
 APPLICATION_WINDOW_TITLE = 'classr - College Career Planner'
 DEFAULT_WINDOW_POSITION_LEFT = 0
 DEFAULT_WINDOW_POSITION_RIGHT = 0
-WINDOW_MINIMUM_HEIGHT = 506
-WINDOW_MINIMUM_WIDTH = 900
+WINDOW_MINIMUM_HEIGHT = 675
+WINDOW_MINIMUM_WIDTH = 1900
 INITIAL_COLUMNS = 1
 
 # Initialize UI, Clickable Items Constants.
@@ -28,29 +33,66 @@ PUSH_BUTTON_HEIGHT = 40
 
 # This is our main window, the parent widget. Our App class inherits from QWidget not QWindow since QWidget offers
 # additional flexibility.
-class App(QWidget):
+class App(QMainWindow):
     def __init__(self):
         super().__init__()
         #--semesters will be a dictionary of semesters, which will soon be custom widgets
         self.semestersAdded = 0
         self.semesters = {}
+
+        #--initialize the main widget and scrolling area
+        self.scrollable = QScrollArea()
+        self.centralWidget = QWidget()
+
         #--set our window parameters
         self.setMinimumHeight(WINDOW_MINIMUM_HEIGHT)
         self.setMinimumWidth(WINDOW_MINIMUM_WIDTH)
         self.setWindowTitle(APPLICATION_WINDOW_TITLE)
         self.setGeometry(DEFAULT_WINDOW_POSITION_LEFT,DEFAULT_WINDOW_POSITION_RIGHT,WINDOW_MINIMUM_WIDTH,WINDOW_MINIMUM_HEIGHT)
 
-        #--initialize our layout to grid layout
-        self.layout = QGridLayout()
+        #--initialize our layout to grid layout and set it
+        self.centralLayout = QGridLayout()
+        self.centralWidget.setLayout(self.centralLayout)
 
-        #--populate with elements
+        #--initialize our AddSemesterButton (extends QPushButton)
+        #--and populate centralLayout with elements
         self.lowerAddSemesterButton = AddSemesterButton()
-        self.layout.addWidget(self.lowerAddSemesterButton, 4, 1)
-        self.lowerAddSemesterButton.clicked.connect(self.addSemester)
-        self.setLayout(self.layout)
+        self.centralLayout.addWidget(self.lowerAddSemesterButton, 4, 1)
 
-        # Show window
+        #--define clicked event.
+        self.lowerAddSemesterButton.clicked.connect(self.addSemester)
+
+        #--configure scrollable
+        self.scrollable.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scrollable.setWidget(self.centralWidget)
+        self.scrollable.setWidgetResizable(True)
+
+        #-set the central widget to the scrollable area. Note that the scrollable area
+        #-- is central widget.
+        self.setCentralWidget(self.scrollable)
+
+        #--Define a QAction for opening previous save
+        openFile = QAction("&Open File", self)
+        openFile.setShortcut("Ctrl+O")
+        openFile.setStatusTip('Open File')
+        openFile.triggered.connect(self.fileOpen)
+
+        #--Define QAction for saving a current plan
+        saveFile = QAction("&Save File", self)
+        saveFile.setShortcut("Ctrl+S")
+        saveFile.setStatusTip('Save File')
+        saveFile.triggered.connect(self.fileSave)
+
+        #--Define the menubar and add the actions to fileMenu.
+        mainMenu = self.menuBar()
+        mainMenu.setNativeMenuBar(True)
+        fileMenu = mainMenu.addMenu('&File')
+        fileMenu.addAction(openFile)
+        fileMenu.addAction(saveFile)
+
+        #--Show the window
         self.show()
+        # End Init
 
     # addSemester is a clicked event intended for the AddSemesterButton QPushButton.
     def addSemester(self):
@@ -59,10 +101,17 @@ class App(QWidget):
         self.semesters[self.semestersAdded] = SemesterItem()
         #add the semester widget accordingly
         if self.semestersAdded % 2 == 0:
-            self.layout.addWidget(self.semesters[self.semestersAdded], self.semestersAdded / 2, 0)
+            self.centralLayout.addWidget(self.semesters[self.semestersAdded], self.semestersAdded / 2, 0)
         else:
-            self.layout.addWidget(self.semesters[self.semestersAdded], (self.semestersAdded- 1) / 2, 1)
+            self.centralLayout.addWidget(self.semesters[self.semestersAdded], (self.semestersAdded- 1) / 2, 1)
         self.semestersAdded +=1
+
+    # file_open is an action for opening a previous save file
+    def fileOpen(self):
+        name = QFileDialog.getOpenFileName(self, 'Open File')
+    # file_save is an action for saving a given plan.
+    def fileSave(self):
+        name = QFileDialog.getSaveFileName(self, 'Save File')
 
 
 class AddSemesterButton(QPushButton):
@@ -101,8 +150,9 @@ class SemesterItem(QWidget):
         self.delCourseButton = DelCourseButton()
         self.semesterTable = SemesterItemTable() #initialize the SemesterItemTable (extends QTableWidget)
 
-        #--Configure UI, set helper variables
+        #--Configure UI, and layout set helper variables
         self.setMinimumWidth(self.frameGeometry().width())
+        self.setMinimumHeight(self.frameGeometry().height())
         self.courseColumnWidth = math.floor(self.frameGeometry().width())
 
         #--Configure table properties
@@ -126,6 +176,7 @@ class SemesterItem(QWidget):
         #--Debugging code. Logging console out for DEBUG level
         logging.debug(f"Course Column Width = {self.courseColumnWidth}")
         logging.debug(f"Semester widget width = {self.frameGeometry().width()}")
+        logging.debug(f"Semester widget height = {self.frameGeometry().height()}")
 
 
 # SemesterItemTable extends QTableWidget. This is the UI elt where the user can input the
@@ -154,23 +205,9 @@ class SemesterItemTable(QTableWidget):
             self.numberOfRows -= 1
         logging.debug("The number of rows: " + str(self.numberOfRows))
 
-# Boiler plate runner code.
+# Boilerplate runner code.
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     ex = App()
     sys.exit(app.exec_())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
