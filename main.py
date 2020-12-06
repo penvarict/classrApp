@@ -109,62 +109,63 @@ class App(QMainWindow):
 
     #-file_open is an action for opening a previous save file
     def fileOpen(self):
-        #print(self.semesters[0].semesterTable.numberOfRows)
-
         name = QFileDialog.getOpenFileName(self, 'Open File')[0]
-        file = open(name, 'r')
-        totalRows = int(file.readline())
-        totalColumns = int(file.readline())
 
-        self.semesters[0].semesterTable.setNumberOfRows(totalRows)
-        print("x")
+        if(name != False and name !=""):
+            file = open(name, 'r')
+            totalRows = int(file.readline())
+            totalColumns = int(file.readline())
 
-        i = 0
+            self.semesters[0].semesterTable.setNumberOfRows(totalRows)
+            print("x")
 
-        while (i <= totalRows):
-            j = 0
-            while (j <= totalColumns):
-                inputLine = file.readline()
-                self.semesters[0].semesterTable.writeCell(i, j, inputLine)
-                print("Y")
-                j = j + 1
-            i = i + 1
+            i = 0
 
-        file.close()
+            while (i <= totalRows):
+                j = 0
+                while (j <= totalColumns):
+                    inputLine = file.readline()
+                    self.semesters[0].semesterTable.writeCell(i, j, inputLine)
+                    print("Y")
+                    j = j + 1
+                i = i + 1
+
+            file.close()
 
     #-file_save is an action for saving a given plan.
     def fileSave(self):
         name = QFileDialog.getSaveFileName(self, 'Save File')[0]
-        file = open(name, 'w')
-        #-line 1 is the number of semester in the plan
-        file.write(str(self.semestersAdded) + "\n")
-        #-loop through all the semesters and add their information to the file
-        for semester in self.semesters.values():
-            totalRows = semester.semesterTable.rowCounter() - 2
-            totalColumns = semester.semesterTable.columnCounter() - 1
+        if(name != False and name !=""):
+            file = open(name, 'w')
+            #-line 1 is the number of semester in the plan
+            file.write(str(self.semestersAdded) + "\n")
+            #-loop through all the semesters and add their information to the file
+            for semester in self.semesters.values():
+                totalRows = semester.semesterTable.rowCounter() - 2
+                totalColumns = semester.semesterTable.columnCounter() - 1
 
-            semesterTitle =semester.getSemesterTitle() #type str
-            logging.debug(f"Total rows from local def fileSave in App(). Semester: {semesterTitle} has {totalRows}")
-            logging.debug(f"Total columns in each sem from local def fileSave in App(). Semester: {semesterTitle} has {totalRows}")
+                semesterTitle =semester.getSemesterTitle() #type str
+                logging.debug(f"Total rows from local def fileSave in App(). Semester: {semesterTitle} has {totalRows}")
+                logging.debug(f"Total columns in each sem from local def fileSave in App(). Semester: {semesterTitle} has {totalRows}")
 
-            #in the save file: the 1st line after the # of semesters
-            file.write(semesterTitle+"\n")
-            #-in the save file the #st line is the number of rows (courses)
-            file.write(str(totalRows) + "\n")
-            #-in the save file is the number of columns
-            file.write(str(totalColumns) + "\n")
+                #in the save file: the 1st line after the # of semesters
+                file.write(semesterTitle+"\n")
+                #-in the save file the #st line is the number of rows (courses)
+                file.write(str(totalRows) + "\n")
+                #-in the save file is the number of columns
+                file.write(str(totalColumns) + "\n")
 
-            row = 0
-            while(row <= totalRows):
-                col = 0
-                while(col <= totalColumns):
-                    file.write(str(semester.semesterTable.readCell(row, col)) + "\n")
-                    col = col + 1
-                row = row + 1
+                row = 0
+                while(row <= totalRows):
+                    col = 0
+                    while(col <= totalColumns):
+                        file.write(str(semester.semesterTable.readCell(row, col)) + "\n")
+                        col = col + 1
+                    row = row + 1
 
-        file.write("-EndOfFileKey- \n")
+            file.write("-EndOfFileKey- \n")
 
-        file.close()
+            file.close()
 
 
 class AddSemesterButton(QPushButton):
