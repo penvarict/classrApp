@@ -1,8 +1,7 @@
-#from PyQt5 import QtGui, QtWidgets
+
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
-import pickle
 from PyQt5.QtCore import Qt
 import sys, logging,math
 # Boilerplate configuration for logging debugger.
@@ -16,9 +15,9 @@ except IndexError:
     DEBUG_LEVEL = 10
     logging.disable(DEBUG_LEVEL)
 
-
-# todo: implement persist functionality
 # todo: implement universal color theming such that it is not just white and grey
+# todo: Need bug fix. When an existing plan is opened and amended it doesn't save again properly.
+# todo: implement credit summation on last course credit column cell.
 
 # Initialize Application Constants for window (Parent Widget)
 APPLICATION_WINDOW_TITLE = 'classr - College Career Planner'
@@ -300,7 +299,12 @@ class SemesterItemTable(QTableWidget):
         return self.item(row, column).text()
 
     def writeCell(self, row, column, textToEnter):
-        self.setItem(row, column, QTableWidgetItem(textToEnter))
+        #-Because save file content is written as content + newline, we must get rid of the newline literal to avoid
+        #-having the cell continuation character '...'. We use right strip to do this.
+        textToEnter = textToEnter.rstrip()
+        cellTextItem = QTableWidgetItem()
+        cellTextItem.setText(textToEnter)
+        self.setItem(row, column, cellTextItem)
 
     def rowCounter(self):
         return self.rowCount()
