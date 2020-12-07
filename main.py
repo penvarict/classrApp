@@ -111,31 +111,57 @@ class App(QMainWindow):
     def fileOpen(self):
         name = QFileDialog.getOpenFileName(self, 'Open File')[0]
 
-        if(name != False and name !=""):
+        #-if statement to only execute the following code if a file name was picked
+        if(name != False and name != ""):
             file = open(name, 'r')
-            totalRows = int(file.readline())
-            totalColumns = int(file.readline())
 
-            self.semesters[0].semesterTable.setNumberOfRows(totalRows)
-            print("x")
+            #-open the total number of semesters in the saved file
+            semestersAdded = int(file.readline())
 
-            i = 0
+            currentSemesterCount = 0
 
-            while (i <= totalRows):
-                j = 0
-                while (j <= totalColumns):
-                    inputLine = file.readline()
-                    self.semesters[0].semesterTable.writeCell(i, j, inputLine)
-                    print("Y")
-                    j = j + 1
-                i = i + 1
+            #-loops until there are an equal number of semesters in the saved file and current file
+            while currentSemesterCount < semestersAdded:
+                self.addSemester()
+                currentSemesterCount = currentSemesterCount + 1
+
+            currentSemesterAmountFilled = 0
+
+            #-loops until all the semesters are filled with the proper values
+            while currentSemesterAmountFilled <= semestersAdded - 1:
+
+                #-reads the semester title and sets it
+                semesterTitle = file.readline()
+                self.semesters[currentSemesterAmountFilled].setSemesterTitle(semesterTitle)
+
+                #-reads the number of rows and columns and sets the number of rows
+                totalRows = int(file.readline())
+                totalColumns = int(file.readline())
+                self.semesters[currentSemesterAmountFilled].semesterTable.setNumberOfRows(totalRows)
+
+                row = 0
+
+                #-loops until the cells are all filled with correct values
+                while (row <= totalRows):
+                    col = 0
+                    while (col <= totalColumns):
+                        #-reads the value to be inputed in the current cell and then prints it
+                        inputLine = file.readline()
+                        self.semesters[currentSemesterAmountFilled].semesterTable.writeCell(row, col, inputLine)
+
+                        col = col + 1
+                    row = row + 1
+
+                currentSemesterAmountFilled = currentSemesterAmountFilled + 1
 
             file.close()
 
     #-file_save is an action for saving a given plan.
     def fileSave(self):
         name = QFileDialog.getSaveFileName(self, 'Save File')[0]
-        if(name != False and name !=""):
+
+        #-if statement to only execute the following code if a file name was picked
+        if(name != False and name != ""):
             file = open(name, 'w')
             #-line 1 is the number of semester in the plan
             file.write(str(self.semestersAdded) + "\n")
@@ -144,7 +170,7 @@ class App(QMainWindow):
                 totalRows = semester.semesterTable.rowCounter() - 2
                 totalColumns = semester.semesterTable.columnCounter() - 1
 
-                semesterTitle =semester.getSemesterTitle() #type str
+                semesterTitle = semester.getSemesterTitle() #type str
                 logging.debug(f"Total rows from local def fileSave in App(). Semester: {semesterTitle} has {totalRows}")
                 logging.debug(f"Total columns in each sem from local def fileSave in App(). Semester: {semesterTitle} has {totalRows}")
 
@@ -235,6 +261,8 @@ class SemesterItem(QWidget):
     def getSemesterTitle(self):
         return self.semesterTitle.text()
 
+    def setSemesterTitle(self, newSemesterTitle):
+        self.semesterTitle.setText(newSemesterTitle)
 
 # SemesterItemTable extends QTableWidget. This is the UI elt where the user can input the
 # courses and credit hours.
@@ -263,7 +291,6 @@ class SemesterItemTable(QTableWidget):
         logging.debug("The number of rows: " + str(self.numberOfRows))
 
     def setNumberOfRows(self, input):
-        print("z")
         while(input < self.numberOfRows - 2):
             self.delCourseEvent()
         while(input > self.numberOfRows - 2):
@@ -273,8 +300,6 @@ class SemesterItemTable(QTableWidget):
         return self.item(row, column).text()
 
     def writeCell(self, row, column, textToEnter):
-        print("a")
-        #self.item(row, column).setText(textToEnter)
         self.setItem(row, column, QTableWidgetItem(textToEnter))
 
     def rowCounter(self):
