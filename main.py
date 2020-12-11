@@ -1,7 +1,4 @@
-
-from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 import sys, logging,math
 # Boilerplate configuration for logging debugger.
@@ -16,8 +13,6 @@ except IndexError:
     logging.disable(DEBUG_LEVEL)
 
 # todo: implement universal color theming such that it is not just white and grey
-# todo: Need bug fix. When an existing plan is opened and amended it doesn't save again properly.
-# todo: implement credit summation on last course credit column cell.
 
 # Initialize Application Constants for window (Parent Widget)
 APPLICATION_WINDOW_TITLE = 'classr - College Career Planner'
@@ -110,11 +105,11 @@ class App(QMainWindow):
     def fileOpen(self):
         name = QFileDialog.getOpenFileName(self, 'Open File')[0]
 
-        #-if statement to only execute the following code if a file name was picked
+        #--if statement to only execute the following code if a file name was picked
         if(name != False and name != ""):
             file = open(name, 'r')
 
-            #-open the total number of semesters in the saved file
+            #--open the total number of semesters in the saved file
             semestersAdded = int(file.readline())
 
             currentSemesterCount = 0
@@ -163,7 +158,7 @@ class App(QMainWindow):
         if(name != False and name != ""):
             file = open(name, 'w')
             #-line 1 is the number of semester in the plan
-            file.write(str(self.semestersAdded) + "\n")
+            file.write(str(self.semestersAdded)+'\n')
             #-loop through all the semesters and add their information to the file
             for semester in self.semesters.values():
                 totalRows = semester.semesterTable.rowCounter() - 2
@@ -173,11 +168,11 @@ class App(QMainWindow):
                 logging.debug(f"Total rows from local def fileSave in App(). Semester: {semesterTitle} has {totalRows}")
                 logging.debug(f"Total columns in each sem from local def fileSave in App(). Semester: {semesterTitle} has {totalRows}")
 
-                #in the save file: the 1st line after the # of semesters
-                file.write(semesterTitle+"\n")
-                #-in the save file the #st line is the number of rows (courses)
+                #--in the save file: the 1st line after the # of semesters
+                file.write(str(semesterTitle)+"\n")
+                #--in the save file the next line is the number of rows (courses)
                 file.write(str(totalRows) + "\n")
-                #-in the save file is the number of columns
+                #--in the save file the next line is number of columns
                 file.write(str(totalColumns) + "\n")
 
                 row = 0
@@ -188,11 +183,12 @@ class App(QMainWindow):
                         col = col + 1
                     row = row + 1
 
+            #-
             file.write("-EndOfFileKey- \n")
 
             file.close()
 
-
+# Define the Add Semester button. Extends QPushButton
 class AddSemesterButton(QPushButton):
     def __init__(self):
         super().__init__()
@@ -200,20 +196,19 @@ class AddSemesterButton(QPushButton):
         self.setFixedWidth(150)
         self.setFixedHeight(40)
 
+# Define the Add Course button. Extends QPushButton
 class AddCourseButton(QPushButton):
     def __init__(self):
         super().__init__()
         self.setText('Add a course')
+
+# Define the Delete Course button. Extends QPushButton.
 class DelCourseButton(QPushButton):
     def __init__(self):
         super().__init__()
         self.setFixedWidth(150)
         self.setFixedHeight(40)
         self.setText("Delete Last Course")
-
-class SemestertitleBox(QLineEdit):
-    def __init__(self):
-        super().__init__()
 
 # SemesterItem inherits from QWidget. This is the 'container' widget that holds the table, title, and Delete button.
 # Beware that Add Course button belongs to the SemesterItemTable.
@@ -225,7 +220,7 @@ class SemesterItem(QWidget):
 
         #--Initialize UI objects
         self.layout = QVBoxLayout()
-        self.semesterTitle = SemestertitleBox()
+        self.semesterTitle = QLineEdit()
         self.delCourseButton = DelCourseButton()
         self.semesterTable = SemesterItemTable() #initialize the SemesterItemTable (extends QTableWidget)
 
@@ -238,8 +233,8 @@ class SemesterItem(QWidget):
         self.semesterTable.horizontalHeader().setVisible(True) # We want a horizontal header on our table
         self.semesterTable.setColumnWidth(0, self.courseColumnWidth)
         self.semesterTable.horizontalHeader().setSectionResizeMode(1,QHeaderView.Stretch)
-        self.semesterTable.setHorizontalHeaderLabels(['Course','Hours']) #set the column labels
-        self.semesterTable.verticalHeader().setVisible(False) # We do not want vertical row headers
+        self.semesterTable.setHorizontalHeaderLabels(['Course','Hours'])  # set the column labels
+        self.semesterTable.verticalHeader().setVisible(False)  # We do not want vertical row headers
         self.semesterTable.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
 
         #--Add widgets to our layout.
@@ -257,30 +252,62 @@ class SemesterItem(QWidget):
         logging.debug(f"Semester widget width = {self.frameGeometry().width()}")
         logging.debug(f"Semester widget height = {self.frameGeometry().height()}")
 
+    #--getter method for the semester title from the SemesterTitleBox (extends QEditBox) instance self.semesterTitle
     def getSemesterTitle(self):
-        return self.semesterTitle.text()
+        return str.rstrip(self.semesterTitle.text()) #we want to strip the newline character that is read in.
 
+    #--setter method for setting the semester title on SemesterTitleBox instance self.semesterTitle.
     def setSemesterTitle(self, newSemesterTitle):
         self.semesterTitle.setText(newSemesterTitle)
+
 
 # SemesterItemTable extends QTableWidget. This is the UI elt where the user can input the
 # courses and credit hours.
 class SemesterItemTable(QTableWidget):
     def __init__(self):
         super().__init__()
+        #--sentinel variable to track the number of rows in a semester table.
         self.numberOfRows = INITIAL_COLUMNS
+
+        #--Configure initial table properties and initialize cell widgets.
         self.setRowCount(1)
         self.setColumnCount(2)
         self.addCourseButton = AddCourseButton()
         self.addCourseButton.setSizePolicy(QSizePolicy.Maximum,QSizePolicy.Maximum)
         self.setCellWidget(self.rowCount() - 1,0,self.addCourseButton)
+
+        #--define events for addCourseButton and cell double click event.
         self.addCourseButton.clicked.connect(self.addCourseEvent)
+        self.cellDoubleClicked.connect(self.cellChangedEvent)
 
     #--define what heppens when the user clicks on Add Course
     def addCourseEvent(self):
         self.insertRow(self.numberOfRows-1)
         self.numberOfRows += 1
         logging.debug("The number of rows: " + str(self.numberOfRows))
+
+    #--define what happens when the user double clicks on a cell. On that event, the course credits get summed
+    #--up.
+    def cellChangedEvent(self):
+        #--initialize summation variable.
+        self.totalCredits = 0
+
+        #--loop through columns to sum up credits using self.totalCredits as running total.
+        for row in range(self.rowCount() -1):
+            #---check if cell is empty
+            if self.readCell(row,1) !='':
+                #---try to add the integer converted value at the cell to running total.
+                try:
+                    self.totalCredits += int(self.readCell(row,1))
+                #---if value error is given (value in cell was not integer) we add 0 to running total.
+                except ValueError:
+                    self.totalCredits += 0
+                    logging.debug(f"Value err, not an integer input in cell.")
+
+            logging.debug(f"cell at {row} is val: {self.readCell(row, 1)}")
+
+        #--write the cell next to the add course button as the total number of credits.
+        self.writeCell(self.rowCount()-1,1,str(self.totalCredits))
 
     #--define what happends when the user clicks on Delete last Course
     def delCourseEvent(self):
@@ -295,26 +322,35 @@ class SemesterItemTable(QTableWidget):
         while(input > self.numberOfRows - 2):
             self.addCourseEvent()
 
-    def readCell(self, row, column):
-        return self.item(row, column).text()
 
+    def readCell(self, row, column):
+        if self.item(row,column) is None:
+            return ''
+        else:
+            return self.item(row, column).text()
+
+    #--method to write text in a given cell. Used when opening previous saves.
     def writeCell(self, row, column, textToEnter):
-        #-Because save file content is written as content + newline, we must get rid of the newline literal to avoid
-        #-having the cell continuation character '...'. We use right strip to do this.
+        #--Because save file content is written as content + newline, we must get rid of the newline literal to avoid
+        #--having the cell continuation character '...'. We use right strip to do this.
         textToEnter = textToEnter.rstrip()
         cellTextItem = QTableWidgetItem()
         cellTextItem.setText(textToEnter)
         self.setItem(row, column, cellTextItem)
 
+    #--getter type method to find row count of the table
     def rowCounter(self):
         return self.rowCount()
 
+    #--getter type method to find the column count of the table
     def columnCounter(self):
         return self.columnCount()
+
 
 # Boilerplate runner code.
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    #--PyQt5 allows us to set predefined styles. Fusion is a modern, minimal theme.
     app.setStyle("Fusion")
     ex = App()
     sys.exit(app.exec_())
