@@ -101,8 +101,11 @@ class App(QMainWindow):
             self.centralLayout.addWidget(self.semesters[self.semestersAdded], (self.semestersAdded- 1) / 2, 1)
         self.semestersAdded +=1
 
+
     #-file_open is an action for opening a previous save file
     def fileOpen(self):
+        #--Allow the user to get a previous save file name using QFileDialog. This opens a file exploer dialog that allows
+        #--the user to select a file.
         name = QFileDialog.getOpenFileName(self, 'Open File')[0]
 
         #--if statement to only execute the following code if a file name was picked
@@ -110,28 +113,28 @@ class App(QMainWindow):
             file = open(name, 'r')
 
             #--open the total number of semesters in the saved file
-            semestersAdded = int(file.readline())
+            semesterCountInSaveFile = int(file.readline())
 
-            currentSemesterCount = 0
+            currentSemesterCount = self.semestersAdded
 
             #-loops until there are an equal number of semesters in the saved file and current file
-            while currentSemesterCount < semestersAdded:
+            while currentSemesterCount < semesterCountInSaveFile:
                 self.addSemester()
-                currentSemesterCount = currentSemesterCount + 1
+                currentSemesterCount += 1
 
-            currentSemesterAmountFilled = 0
+            currentSemestersFilled = 0
 
             #-loops until all the semesters are filled with the proper values
-            while currentSemesterAmountFilled <= semestersAdded - 1:
+            while currentSemestersFilled <= semesterCountInSaveFile - 1:
 
                 #-reads the semester title and sets it
                 semesterTitle = file.readline()
-                self.semesters[currentSemesterAmountFilled].setSemesterTitle(semesterTitle)
+                self.semesters[currentSemestersFilled].setSemesterTitle(semesterTitle)
 
                 #-reads the number of rows and columns and sets the number of rows
                 totalRows = int(file.readline())
                 totalColumns = int(file.readline())
-                self.semesters[currentSemesterAmountFilled].semesterTable.setNumberOfRows(totalRows)
+                self.semesters[currentSemestersFilled].semesterTable.setNumberOfRows(totalRows)
 
                 row = 0
 
@@ -141,12 +144,13 @@ class App(QMainWindow):
                     while (col <= totalColumns):
                         #-reads the value to be inputed in the current cell and then prints it
                         inputLine = file.readline()
-                        self.semesters[currentSemesterAmountFilled].semesterTable.writeCell(row, col, inputLine)
+                        self.semesters[currentSemestersFilled].semesterTable.writeCell(row, col, inputLine)
 
                         col = col + 1
                     row = row + 1
-
-                currentSemesterAmountFilled = currentSemesterAmountFilled + 1
+                #--sum credits upon filling each semester
+                self.semesters[currentSemestersFilled].semesterTable.sumCreditsOnDbClickedEvent()
+                currentSemestersFilled += 1
 
             file.close()
 
@@ -278,7 +282,7 @@ class SemesterItemTable(QTableWidget):
 
         #--define events for addCourseButton and cell double click event.
         self.addCourseButton.clicked.connect(self.addCourseEvent)
-        self.cellDoubleClicked.connect(self.cellChangedEvent)
+        self.cellDoubleClicked.connect(self.sumCreditsOnDbClickedEvent)
 
     #--define what heppens when the user clicks on Add Course
     def addCourseEvent(self):
@@ -288,7 +292,7 @@ class SemesterItemTable(QTableWidget):
 
     #--define what happens when the user double clicks on a cell. On that event, the course credits get summed
     #--up.
-    def cellChangedEvent(self):
+    def sumCreditsOnDbClickedEvent(self):
         #--initialize summation variable.
         self.totalCredits = 0
 
