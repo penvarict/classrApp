@@ -37,7 +37,7 @@ If you have ideas for features, you may add to the project board on this Github 
 
 ## User Guide
 
-**Basic use case: (see README.PDF for user guide with images) ** 
+**Basic use case: (see README.PDF for user guide with images)** 
 
 1. Click 'Add Semester' to get your first semester table.
 
