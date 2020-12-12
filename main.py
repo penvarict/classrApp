@@ -106,7 +106,7 @@ class App(QMainWindow):
     def fileOpen(self):
         #--Allow the user to get a previous save file name using QFileDialog. This opens a file exploer dialog that allows
         #--the user to select a file.
-        name = QFileDialog.getOpenFileName(self, 'Open File')[0]
+        name = QFileDialog.getOpenFileName(self, 'Open File',filter='Text File (*.txt)')[0]
 
         #--if statement to only execute the following code if a file name was picked
         if(name != False and name != ""):
@@ -156,7 +156,7 @@ class App(QMainWindow):
 
     #-file_save is an action for saving a given plan.
     def fileSave(self):
-        name = QFileDialog.getSaveFileName(self, 'Save File')[0]
+        name = QFileDialog.getSaveFileName(self, 'Save File',filter='Text File (*.txt)')[0]
 
         #-if statement to only execute the following code if a file name was picked
         if(name != False and name != ""):
