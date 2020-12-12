@@ -5,7 +5,7 @@ classr is a light weight desktop app that will track college credits and will al
 
 **Current Project Status**
 
-We have created the initial user interface.
+The project is stable with minimal bugs. See project board to see known bugs.
 
 **Where to Find Information**
 
@@ -15,7 +15,7 @@ Also, on GitHub we are using the project boards to track bugs and things that ne
 
 **Dependencies**
 
-- Python 3.7 or later, Virtual Environment is included but not configured with PyQt5
+- **Python 3.7 or later, Virtual Environment is included but not configured with PyQt5**
 
 - PyQt5.QtWidgets
   - We import all (*) currently
@@ -29,6 +29,9 @@ Also, on GitHub we are using the project boards to track bugs and things that ne
 
 **Contribution Guide**
 
-Clone the repository. Off of the main branch, create a working branch that is named 'GitHubUsername - FeatureName'.
+Clone the repository. Off of the main branch, create a working branch that is named 'GitHubUsername-FeatureName'.
 
-In pull requests, please specify the files that were changed and why they were changed in the final commit on the branch. If a feature is added, please specify that in the summary of the last commit. In all scenarios, please work with the existing dependencies that are specified above.
+In pull requests, please specify the files that were changed and why they were changed in the pull request description. 
+
+If you have ideas for features, you may add to the project board on this Github Repository. You may also create your own branch and then add drawings for UI improvements to the Planning Resources directory. From there, put in a pull request and we will get to reviewing it as soon as possible.
+
