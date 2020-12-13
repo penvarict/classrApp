@@ -14,20 +14,19 @@ except IndexError:
 
 # todo: implement universal color theming such that it is not just white and grey
 
-# Initialize Application Constants for window (Parent Widget)
+# Initialize Application Constants for window (Parent Widget).
 APPLICATION_WINDOW_TITLE = 'classr - College Career Planner'
 DEFAULT_WINDOW_POSITION_LEFT = 0
 DEFAULT_WINDOW_POSITION_RIGHT = 0
 WINDOW_MINIMUM_HEIGHT = 675
 WINDOW_MINIMUM_WIDTH = 1900
-INITIAL_COLUMNS = 1
+INITIAL_ROWS = 1
 
 # Initialize UI, Clickable Items Constants.
 PUSH_BUTTON_WIDTH = 150
 PUSH_BUTTON_HEIGHT = 40
 
-# This is our main window, the parent widget. Our App class inherits from QWidget not QWindow since QWidget offers
-# additional flexibility.
+# This is our main window, the parent widget. Our App class inherits from QMainWindow.
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -35,7 +34,7 @@ class App(QMainWindow):
         self.semestersAdded = 0
         self.semesters = {}
 
-        #--initialize the main widget and scrolling area
+        #--initialize the main (central) widget and scrolling area
         self.scrollable = QScrollArea()
         self.centralWidget = QWidget()
 
@@ -54,7 +53,7 @@ class App(QMainWindow):
         self.lowerAddSemesterButton = AddSemesterButton()
         self.centralLayout.addWidget(self.lowerAddSemesterButton, 4, 1)
 
-        #--define clicked event.
+        #--define clicked event for add semester button.
         self.lowerAddSemesterButton.clicked.connect(self.addSemester)
 
         #--configure scrollable
@@ -62,8 +61,8 @@ class App(QMainWindow):
         self.scrollable.setWidget(self.centralWidget)
         self.scrollable.setWidgetResizable(True)
 
-        #-set the central widget to the scrollable area. Note that the scrollable area
-        #-- is central widget.
+        #--set the central widget to the scrollable area. Note that the scrollable area
+        #--is the central widget.
         self.setCentralWidget(self.scrollable)
 
         #--Define a QAction for opening previous save
@@ -117,35 +116,36 @@ class App(QMainWindow):
 
             currentSemesterCount = self.semestersAdded
 
-            #-loops until there are an equal number of semesters in the saved file and current file
+            #--loops until there are an equal number of semesters in the saved file and current file
             while currentSemesterCount < semesterCountInSaveFile:
                 self.addSemester()
                 currentSemesterCount += 1
 
             currentSemestersFilled = 0
 
-            #-loops until all the semesters are filled with the proper values
+            #--loops until all the semesters are filled with the proper values
             while currentSemestersFilled <= semesterCountInSaveFile - 1:
 
-                #-reads the semester title and sets it
+                #--reads the semester title and sets it
                 semesterTitle = file.readline()
                 self.semesters[currentSemestersFilled].setSemesterTitle(semesterTitle)
 
-                #-reads the number of rows and columns and sets the number of rows
+                #--reads the number of rows and columns and sets the number of rows
                 totalRows = int(file.readline())
                 totalColumns = int(file.readline())
+
+                #--set the number of rows in each semester table.
                 self.semesters[currentSemestersFilled].semesterTable.setNumberOfRows(totalRows)
 
                 row = 0
 
-                #-loops until the cells are all filled with correct values
+                #--loops until the cells are all filled with correct values
                 while (row <= totalRows):
                     col = 0
                     while (col <= totalColumns):
                         #-reads the value to be inputed in the current cell and then prints it
                         inputLine = file.readline()
                         self.semesters[currentSemestersFilled].semesterTable.writeCell(row, col, inputLine)
-
                         col = col + 1
                     row = row + 1
                 #--sum credits upon filling each semester
@@ -156,29 +156,35 @@ class App(QMainWindow):
 
     #-file_save is an action for saving a given plan.
     def fileSave(self):
+        #--Allow the user to get a previous save file name using QFileDialog. This opens a file exploer dialog that allows
+        #--the user to select a file.
         name = QFileDialog.getSaveFileName(self, 'Save File',filter='Text File (*.txt)')[0]
 
-        #-if statement to only execute the following code if a file name was picked
+        #--if statement to only execute the following code if a file name was picked
         if(name != False and name != ""):
+            #--we open file in write mode so plans can overwritten.
             file = open(name, 'w')
-            #-line 1 is the number of semester in the plan
+            #--line 1 is the number of semester in the plan
             file.write(str(self.semestersAdded)+'\n')
-            #-loop through all the semesters and add their information to the file
+            #--loop through all the semesters and add their information to the file
             for semester in self.semesters.values():
                 totalRows = semester.semesterTable.rowCounter() - 2
                 totalColumns = semester.semesterTable.columnCounter() - 1
 
                 semesterTitle = semester.getSemesterTitle() #type str
+
+                #--debug to see how the file is parsed.
                 logging.debug(f"Total rows from local def fileSave in App(). Semester: {semesterTitle} has {totalRows}")
                 logging.debug(f"Total columns in each sem from local def fileSave in App(). Semester: {semesterTitle} has {totalRows}")
 
-                #--in the save file: the 1st line after the # of semesters
+                #--in the save file: the 1st line after the # of semesters is the semester title.
                 file.write(str(semesterTitle)+"\n")
-                #--in the save file the next line is the number of rows (courses)
+                #--in the save file: the next line is the number of rows (courses)
                 file.write(str(totalRows) + "\n")
-                #--in the save file the next line is number of columns
+                #--in the save file: the next line is number of columns
                 file.write(str(totalColumns) + "\n")
 
+                #--Write the contents of each semester to file.
                 row = 0
                 while(row <= totalRows):
                     col = 0
@@ -187,7 +193,7 @@ class App(QMainWindow):
                         col = col + 1
                     row = row + 1
 
-            #-
+            #--once the plan is written, the last thing written is eof key.
             file.write("-EndOfFileKey- \n")
 
             file.close()
@@ -270,8 +276,8 @@ class SemesterItem(QWidget):
 class SemesterItemTable(QTableWidget):
     def __init__(self):
         super().__init__()
-        #--sentinel variable to track the number of rows in a semester table.
-        self.numberOfRows = INITIAL_COLUMNS
+        #--sentinel/debug variable to track the number of rows in a semester table.
+        self.numberOfRows = INITIAL_ROWS
 
         #--Configure initial table properties and initialize cell widgets.
         self.setRowCount(1)
@@ -320,13 +326,16 @@ class SemesterItemTable(QTableWidget):
             self.numberOfRows -= 1
         logging.debug("The number of rows: " + str(self.numberOfRows))
 
+    #--setNumberOfRows is used in opening a previous plan, it will make sure each semester has enough rows such that
+    #--it can be populated with courses.
     def setNumberOfRows(self, input):
         while(input < self.numberOfRows - 2):
             self.delCourseEvent()
         while(input > self.numberOfRows - 2):
             self.addCourseEvent()
 
-
+    #--readCell is a getter type method. Will return string of contents inside a cell, returns empty str when
+    #--cell does now have contents.
     def readCell(self, row, column):
         if self.item(row,column) is None:
             return ''
